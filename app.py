@@ -462,5 +462,13 @@ def admin_upload_wallets():
 def format_dt(v): return "-" if not v else v.strftime("%Y-%m-%d %H:%M:%S")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    import os
+    port_str = os.environ.get("PORT")
+    try:
+        port = int(port_str) if port_str else 8000
+    except ValueError:
+        port = 8000
+
+    print(f"Starting on port {port}", flush=True)
     app.run(host="0.0.0.0", port=port, debug=True)
+
