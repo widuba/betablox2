@@ -54,6 +54,11 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
+# --- TEMP: make login/forms work in hosted envs ---
+app.config["WTF_CSRF_ENABLED"] = False     # disable CSRF just to confirm the issue
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = False
+# --------------------------------------------------
 app.jinja_env.globals.update(fmt_beta=fmt_beta, vip_progress=vip_progress)
 
 engine = create_engine("sqlite:///beta_blockz.db", connect_args={"check_same_thread": False})
