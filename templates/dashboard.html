@@ -1,0 +1,48 @@
+<!doctype html><title>Dashboard · {{ site_name }}</title>
+<link rel="stylesheet" href="/static/style.css">
+<div class="wrap">
+  <div class="nav"><div><strong>{{ site_name }}</strong></div>
+    <div class="row"><a href="/game/dice">Dice</a><a href="/game/mines">Mines</a><a href="/admin">Admin</a><a href="/logout">Log out</a></div>
+  </div>
+  <h2>Welcome, {{ user.username }}</h2>
+  <div class="cards">
+    <div class="card"><h3>Your Wallet</h3><p><span class="muted">Deposit address</span><br><code>{{ user.wallet_address or 'Not assigned yet' }}</code></p><p class="muted">Send SOL only. Admin credits manually.</p></div>
+    <div class="card"><h3>Balance</h3><div class="balance">{{ fmt_beta((user.balance_sol or 0.0) * 100) }}</div></div>
+    <div class="card">
+      <h3>VIP</h3>
+      {% set _tier, _pct, _cur, _next = vip_progress(user.total_wagered or 0.0) %}
+      <p><b>Tier:</b> {{ _tier }}<br><b>Total wagered:</b> {{ fmt_beta((user.total_wagered or 0.0) * 100) }}<br><b>Next tier at:</b> {{ fmt_beta(_next) }}</p>
+      <div class="bar"><div class="fill" style="width: {{ '%.0f'|format(_pct) }}%"></div></div>
+      <p class="muted">Progress: {{ '%.0f'|format(_pct) }}%</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Redeem</h3>
+    <p class="muted">Manual payouts, up to 24 hours.</p>
+    <form method="post" action="/redeem">
+      <label>Wallet to redeem to <input name="wallet_to" required minlength="20" maxlength="80"></label>
+      <label>Amount (SOL) <input type="number" name="amount" step="0.0001" required></label>
+      <button class="btn">Submit redeem request</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Claim Code</h3>
+    <p class="muted">Enter your personal code to claim the amount set for your account (one-time).</p>
+    <form method="post" action="/claim">
+      <label>Code <input name="claim_code" required></label>
+      <button class="btn" type="submit">Claim</button>
+    </form>
+    {% if user.claim_code %}
+      <p class="muted">A code is assigned to your account. {% if user.claim_claimed_at %}<b>Already claimed.</b>{% else %}<b>Not yet claimed.</b>{% endif %}</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Recent Activity</h3>
+    <table><thead><tr><th>When</th><th>Type</th><th>Amount</th><th>Status</th><th>Meta</th></tr></thead>
+      <tbody>{% for t in txns %}<tr><td>{{ t.created_at|dt }}</td><td>{{ t.type }}</td><td>{{ '%.4f'|format(t.amount) }}</td><td>{{ t.status }}</td><td><small>{{ t.meta }}</small></td></tr>{% else %}<tr><td colspan="5" class="muted">No activity yet.</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>

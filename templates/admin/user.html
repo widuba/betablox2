@@ -1,0 +1,58 @@
+<!doctype html><title>User · {{ site_name }}</title>
+<link rel="stylesheet" href="/static/style.css">
+<div class="wrap">
+  <div class="nav"><div><strong>{{ site_name }}</strong></div>
+    <div class="row"><a href="/admin">Back</a><a href="/logout">Log out</a></div>
+  </div>
+  <h2>User #{{ u.id }} — {{ u.username }}</h2>
+  <div class="cards">
+    <div class="card"><h3>Profile</h3>
+      {% set _tier, _pct, _cur, _next = vip_progress(u.total_wagered or 0.0) %}
+      <p><b>Email:</b> {{ u.email }}<br><b>Wallet:</b> <code>{{ u.wallet_address or '-' }}</code><br><b>Balance:</b> {{ fmt_beta((u.balance_sol or 0.0) * 100) }}<br><b>VIP:</b> {{ u.vip_tier }}
+      <div class="bar"><div class="fill" style="width: {{ '%.0f'|format(_pct) }}%"></div></div><div class="muted">Progress: {{ '%.0f'|format(_pct) }}% to {{ fmt_beta(_next) }}</div>
+      <br><b>Total wagered:</b> {{ fmt_beta((u.total_wagered or 0.0) * 100) }}<br><b>Bonus due:</b> {{ fmt_beta((u.bonus_due or 0.0) * 100) }}<br><b>Claim code:</b> {{ u.claim_code or '-' }}<br><b>Claim amount:</b> {{ fmt_beta((u.claim_amount or 0.0) * 100) }}<br><b>Claimed at:</b> {{ u.claim_claimed_at|dt }}<br><b>Role:</b> {{ u.role }}</p>
+    </div>
+    <div class="card"><h3>Adjust Balance / Wagered / Bonus</h3>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}<div class="flash {{cat}}">{{ msg }}</div>{% endfor %}{% endwith %}
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <label>Set balance to {{ form.set_amount() }}</label>
+        <label>Add amount {{ form.add_amount() }}</label>
+        <label>Subtract amount {{ form.sub_amount() }}</label>
+        <hr>
+        <label>Set total wagered {{ form.set_wager() }}</label>
+        <label>Add to total wagered {{ form.add_wager() }}</label>
+        <label>Subtract from total wagered {{ form.sub_wager() }}</label>
+        <hr>
+        <label>Set bonus due to {{ form.set_bonus() }}</label>
+        <label>Add to bonus due {{ form.add_bonus() }}</label>
+        <label>Subtract from bonus due {{ form.sub_bonus() }}</label>
+        <hr>
+        <label>Set claim code {{ form.set_claim_code() }}</label>
+        <label>Set claim amount {{ form.set_claim_amount() }}</label>
+        {{ form.submit(class="btn") }}
+      </form>
+      <p style="margin-top:8px"><a class="btn" href="/admin/user/{{u.id}}/credit_bonus">Credit bonus to balance</a></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Performance (PnL & Wager)</h3>
+    <table>
+      <thead><tr><th>Window</th><th>Wagered (BETA)</th><th>PnL (SOL)</th></tr></thead>
+      <tbody>
+        <tr><td>Last 24 hours</td><td>{{ fmt_beta((stats['last_24h']['wagered'] if stats and stats.get('last_24h') else 0) * 100) }}</td><td>{{ '%.4f'|format(stats['last_24h']['pnl'] if stats and stats.get('last_24h') else 0) }}</td></tr>
+        <tr><td>Last 7 days</td><td>{{ fmt_beta((stats['last_7d']['wagered'] if stats and stats.get('last_7d') else 0) * 100) }}</td><td>{{ '%.4f'|format(stats['last_7d']['pnl'] if stats and stats.get('last_7d') else 0) }}</td></tr>
+        <tr><td>Last 30 days</td><td>{{ fmt_beta((stats['last_30d']['wagered'] if stats and stats.get('last_30d') else 0) * 100) }}</td><td>{{ '%.4f'|format(stats['last_30d']['pnl'] if stats and stats.get('last_30d') else 0) }}</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Wagered shown in BETA; PnL shown in SOL (bets negative, payouts positive, per-bet pairing).</p>
+  </div>
+
+  <div class="card"><h3>History</h3>
+    <table><thead><tr><th>When</th><th>Type</th><th>Amount</th><th>Status</th><th>Meta</th></tr></thead>
+      <tbody>{% for t in txns %}<tr><td>{{ t.created_at|dt }}</td><td>{{ t.type }}</td><td>{{ '%.4f'|format(t.amount) }}</td><td>{{ t.status }}</td><td><small>{{ t.meta }}</small></td></tr>{% else %}<tr><td colspan="5" class="muted">No history.</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>

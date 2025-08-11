@@ -1,0 +1,15 @@
+<!doctype html><title>Sign up · {{ site_name }}</title>
+<link rel="stylesheet" href="/static/style.css">
+<div class="wrap small">
+  <h2>Create account</h2>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="flash {{cat}}">{{ msg }}</div>{% endfor %}{% endwith %}
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <label>Email {{ form.email() }}</label>
+    <label>Username {{ form.username() }}</label>
+    <label>Password {{ form.password() }}</label>
+    <label>Invite Code {{ form.invite() }}</label>
+    {{ form.submit(class="btn") }}
+  </form>
+</div>

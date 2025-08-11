@@ -1,0 +1,30 @@
+<!doctype html><title>Admin · {{ site_name }}</title>
+<link rel="stylesheet" href="/static/style.css">
+<div class="wrap">
+  <div class="nav"><div><strong>{{ site_name }}</strong></div>
+    <div class="row"><a href="/dashboard">Dashboard</a><a href="/logout">Log out</a></div>
+  </div>
+  <h2>Admin</h2>
+  <div class="card">
+    <h3>Upload Wallet List</h3>
+    <form method="post" enctype="multipart/form-data" action="/admin/upload_wallets">
+      <input type="file" name="csvfile" accept=".csv" required>
+      <button class="btn" type="submit">Upload CSV</button>
+      <p class="muted">CSV must have a column named <code>wallet</code>.</p>
+    </form>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <h3>Users</h3>
+      <table><thead><tr><th>ID</th><th>Email</th><th>Username</th><th>Wallet</th><th>Balance</th><th>VIP</th><th>Wagered</th><th>Bonus Due</th><th>Role</th><th>Created</th><th></th></tr></thead>
+        <tbody>{% for u in users %}<tr><td>{{ u.id }}</td><td>{{ u.email }}</td><td>{{ u.username }}</td><td><small>{{ u.wallet_address or '-' }}</small></td><td>{{ fmt_beta((u.balance_sol or 0.0) * 100) }}</td><td>{{ u.vip_tier }}</td><td>{{ fmt_beta((u.total_wagered or 0.0) * 100) }}</td><td>{{ fmt_beta((u.bonus_due or 0.0) * 100) }}</td><td>{{ u.role }}</td><td>{{ u.created_at|dt }}</td><td><a class="btn small" href="/admin/user/{{u.id}}">Open</a></td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Pending Redeems</h3>
+      <table><thead><tr><th>When</th><th>User</th><th>Amount (SOL)</th><th>Meta</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>{% for t in pending %}<tr><td>{{ t.created_at|dt }}</td><td>{{ t.user.username }}</td><td>{{ '%.4f'|format(t.amount) }}</td><td><small>{{ t.meta }}</small></td><td>{{ t.status }}</td><td><a class="btn small" href="/admin/tx/{{t.id}}/complete">Mark Completed</a> <a class="btn small ghost" href="/admin/tx/{{t.id}}/reject">Reject & Refund</a></td></tr>{% else %}<tr><td colspan="6" class="muted">No pending redeems.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </div>
+</div>
